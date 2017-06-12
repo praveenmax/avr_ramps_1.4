@@ -1,0 +1,202 @@
+/*
+ * MotorsCheck.c
+ *
+ * Created: 12-06-2017 12:33:40 PM
+ *  Author: PraveenMax
+ */ 
+
+#include <avr/io.h>
+#include <util/delay.h>
+/**
+ * For RAMPS v1.4
+ */
+
+//E0 MOTOR
+#define E0_PIN_DIR  PA6
+#define E0_PIN_STEP PA4
+#define E0_PIN_EN   PA2
+
+//E1 MOTOR
+#define E1_PIN_DIR  PC3
+#define E1_PIN_STEP PC1
+#define E1_PIN_EN   PC7
+
+//X MOTOR
+#define X_PIN_DIR  PF1
+#define X_PIN_STEP PF0
+#define X_PIN_EN   PD7
+
+//Y MOTOR
+#define Y_PIN_DIR  PF7
+#define Y_PIN_STEP PF6
+#define Y_PIN_EN   PF2
+
+//Z MOTOR(2 MOTORS)
+#define Z_PIN_DIR  PL1
+#define Z_PIN_STEP PL3
+#define Z_PIN_EN   PK0
+
+//For motors X,Y
+// TODO: find for Z
+typedef struct{
+  void (*initMotor)(void);
+  void (*runMotor)(unsigned int steps);
+}Motor;
+
+void InitMotor_E0();
+void InitMotor_E1();
+void InitMotor_X();
+void InitMotor_Y();
+void InitMotor_Z();
+
+void RunMotor_E0(unsigned int steps);
+void RunMotor_E1(unsigned int steps);
+void RunMotor_X(unsigned int steps);
+void RunMotor_Y(unsigned int steps);
+void RunMotor_Z(unsigned int steps);
+
+int main(void)
+{
+  Motor motor_e0, motor_e1, motor_x, motor_y, motor_z;
+
+  //assign
+  motor_e0.initMotor=&InitMotor_E0;
+  motor_e0.runMotor=&RunMotor_E0;
+
+  motor_e1.initMotor=&InitMotor_E1;
+  motor_e1.runMotor=&RunMotor_E1;
+  
+  motor_x.initMotor=&InitMotor_X;
+  motor_x.runMotor=&RunMotor_X;
+
+  motor_y.initMotor=&InitMotor_Y;
+  motor_y.runMotor=&RunMotor_Y;
+
+  motor_z.initMotor=&InitMotor_Z;
+  motor_z.runMotor=&RunMotor_Z;
+
+  //perform operations
+  motor_e0.initMotor();
+  motor_e1.initMotor();
+  motor_x.initMotor();
+  motor_y.initMotor();
+  motor_z.initMotor();
+
+  _delay_ms(1000);
+
+  //run motor
+  motor_e0.runMotor(200);
+  motor_e1.runMotor(200);
+  motor_x.runMotor(200);
+  motor_y.runMotor(200);
+  motor_z.runMotor(200);
+  
+}
+
+//FOR MOTOR E0
+void InitMotor_E0()
+{
+    //control pins
+    DDRA |=  (1<<E0_PIN_DIR) | (1<<E0_PIN_STEP) |(1<<E0_PIN_EN);
+    
+    PORTA |= (1<<E0_PIN_DIR);//  CW dir
+    PORTA &= ~(1<<E0_PIN_EN);
+}
+
+void InitMotor_E1()
+{
+    DDRC |= (1<<E1_PIN_DIR) | (1<<E1_PIN_STEP) | (1<<E1_PIN_EN);
+
+    PORTC |=  1<<E1_PIN_DIR;
+    PORTC &= ~(1<<E1_PIN_EN);
+}
+
+//FOR MOTOR X
+void InitMotor_X()
+{
+  //control pins
+  DDRF |= (1<<X_PIN_DIR) | (1<<X_PIN_STEP);
+  DDRD |= (1<<X_PIN_EN);
+
+  PORTF |=  1<<X_PIN_DIR;
+  PORTD &= ~(1<<X_PIN_EN);
+}
+
+void InitMotor_Y()
+{
+  DDRF |= (1<<Y_PIN_DIR) | (1<<Y_PIN_STEP) | (1<<Y_PIN_EN);  
+
+  PORTF |= 1<<Y_PIN_DIR;
+  PORTF &= ~( 1<<Y_PIN_EN);  
+}
+
+void InitMotor_Z()
+{
+  DDRL |= (1<<Z_PIN_STEP) | (1<<Z_PIN_DIR);
+  DDRK |= (1<<Z_PIN_EN);
+
+  PORTL |= 1<<Z_PIN_DIR;
+  PORTK &= ~(1<<Z_PIN_EN);
+}
+
+//FOR MOTOR E0
+void RunMotor_E0(unsigned int steps)
+{
+    for(int i=0 ; i < steps ; i++)
+    {
+      PORTA |=  1<<E0_PIN_STEP;
+      _delay_ms(4);
+      
+      PORTA &= ~(1<<E0_PIN_STEP);
+      _delay_ms(4);
+    }
+}
+
+void RunMotor_E1(unsigned int steps)
+{
+    for(int i=0 ; i<steps ; i++)
+    {
+      PORTC |= 1<<E1_PIN_STEP;
+      _delay_ms(4);
+
+      PORTC &= ~(1<<E1_PIN_STEP);
+      _delay_ms(4);
+    }
+}
+
+void RunMotor_X(unsigned int steps)
+{
+    for(int i=0 ; i<steps ; i++)
+    {
+      PORTF |= 1<<X_PIN_STEP;
+      _delay_ms(4);
+  
+      PORTF &=~(1<<X_PIN_STEP);
+      _delay_ms(4);
+    }
+}
+
+void RunMotor_Y(unsigned int steps)
+{
+  for(int i=0 ; i<steps ; i++)
+  {
+    PORTF |= 1<<Y_PIN_STEP;
+    _delay_ms(4);
+
+    PORTF &=~(1<<Y_PIN_STEP);
+    _delay_ms(4);
+  }
+}
+
+void RunMotor_Z(unsigned int steps)
+{
+  for(int i=0 ; i<steps ; i++)
+  {
+    PORTL |= 1<<Z_PIN_STEP;
+    _delay_ms(4);
+
+    PORTL &= ~(1<<Z_PIN_STEP);
+    _delay_ms(4);
+  }
+}
+
